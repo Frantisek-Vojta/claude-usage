@@ -97,32 +97,6 @@ The build targets a JDK 17 toolchain; the
 [Foojay resolver](https://github.com/gradle/foojay-toolchains) in `settings.gradle.kts`
 provisions it automatically on first run, so no manual JDK install is needed.
 
-## Releasing
-
-Signing and command-line publishing are optional — a plain `buildPlugin` ZIP can be
-uploaded through the Marketplace web UI. To do it from Gradle:
-
-```bash
-# one-time: self-signed certificate
-openssl genpkey -aes-256-cbc -algorithm RSA -pkeyopt rsa_keygen_bits:4096 -out private.pem
-openssl req -key private.pem -new -x509 -days 3650 -out chain.crt
-```
-
-Then set (files or raw PEM contents both work), plus a Marketplace token:
-
-| Variable | Value |
-|---|---|
-| `CERTIFICATE_CHAIN_FILE` / `CERTIFICATE_CHAIN` | path to `chain.crt` / its contents |
-| `PRIVATE_KEY_FILE` / `PRIVATE_KEY` | path to `private.pem` / its contents |
-| `PRIVATE_KEY_PASSWORD` | the passphrase from `openssl genpkey` |
-| `PUBLISH_TOKEN` | Marketplace → profile → **My Tokens** |
-
-```bash
-./gradlew signPlugin           # -> *-signed.zip
-./gradlew verifyPluginSignature
-./gradlew publishPlugin        # bump pluginVersion first
-```
-
 ## License
 
 [MIT](LICENSE).
