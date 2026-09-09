@@ -16,8 +16,9 @@ import javax.swing.SwingConstants
 
 class ClaudeUsageWidget : CustomStatusBarWidget {
 
-    private val label = JBLabel("Claude …", null, SwingConstants.CENTER).apply {
+    private val label = JBLabel("…", ClaudeIcons.STATUS, SwingConstants.CENTER).apply {
         border = JBUI.Borders.empty(0, 6)
+        iconTextGap = JBUI.scale(4)
         toolTipText = "Claude usage — click for details"
     }
     private val listener: () -> Unit = { UIUtil.invokeLaterIfNeeded(::render) }
@@ -48,11 +49,11 @@ class ClaudeUsageWidget : CustomStatusBarWidget {
         val quota = snap.subscription?.quota(settings.quotaTier)
 
         label.text = if (quota == null) {
-            "Claude —"
+            "—"
         } else {
             val pct = "${quota.utilization.toInt()}% used"
             val reset = Format.untilReset(quota.resetsAt)
-            if (reset.isEmpty()) pct else "$pct | $reset"
+            if (reset.isEmpty()) pct else "$pct | resets in $reset"
         }
 
         label.foreground = when {

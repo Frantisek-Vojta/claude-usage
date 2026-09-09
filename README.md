@@ -3,8 +3,8 @@
 A small, free, open-source JetBrains plugin that shows your **Claude** usage in the
 IDE status bar (bottom-right).
 
-The status bar shows `11% used | 1:55` — percent of the selected quota used and
-time (`H:MM`) until it resets.
+The status bar shows a Claude icon + `14% used | resets in 1:14` — percent of the
+selected quota used and time (`H:MM`) until it resets.
 
 | | Source | Needs login? |
 |---|---|---|
