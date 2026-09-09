@@ -75,6 +75,14 @@ data class TokenTotals(
     val totalTokens: Long
         get() = inputTokens + outputTokens + cacheCreationTokens + cacheReadTokens
 
+    /** Tokens you actually sent + received, excluding prompt-cache traffic. */
+    val ioTokens: Long
+        get() = inputTokens + outputTokens
+
+    /** Prompt-cache reads + writes — large in long sessions, cheap, not "quota spent". */
+    val cacheTokens: Long
+        get() = cacheCreationTokens + cacheReadTokens
+
     operator fun plusAssign(other: TokenTotals) {
         inputTokens += other.inputTokens
         outputTokens += other.outputTokens

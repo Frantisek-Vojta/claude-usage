@@ -52,11 +52,11 @@ internal object UsagePopup {
         }
 
         root.add(separator())
-        root.add(header("Tokens used"))
-        root.add(caption("Claude Code CLI only — excludes claude.ai and other clients"))
+        root.add(header("Tokens used (sent + received)"))
+        root.add(caption("Claude Code CLI only. Cache = context re-read each turn; cheap, not quota."))
         for (w in UsageWindow.entries) {
             val t = snap.local.window(w)
-            root.add(JBLabel("${w.label}:  ${Format.tokens(t.totalTokens)}"))
+            root.add(JBLabel("${w.label}:  ${Format.tokens(t.ioTokens)}  ·  ${Format.tokens(t.cacheTokens)} cache"))
         }
 
         root.add(separator())
