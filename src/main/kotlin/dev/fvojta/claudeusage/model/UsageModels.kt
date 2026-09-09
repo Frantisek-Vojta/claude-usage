@@ -62,7 +62,7 @@ enum class QuotaTier(val label: String) {
 }
 
 /* ----------------------------------------------------------------------------
- * Local token/cost aggregation from ~/.claude/projects/**/*.jsonl
+ * Local token counts from ~/.claude/projects/**/*.jsonl (Claude Code CLI only).
  * ------------------------------------------------------------------------- */
 
 /** Token totals for one time window. */
@@ -71,7 +71,6 @@ data class TokenTotals(
     var outputTokens: Long = 0,
     var cacheCreationTokens: Long = 0,
     var cacheReadTokens: Long = 0,
-    var costUsd: Double = 0.0,
 ) {
     val totalTokens: Long
         get() = inputTokens + outputTokens + cacheCreationTokens + cacheReadTokens
@@ -81,21 +80,17 @@ data class TokenTotals(
         outputTokens += other.outputTokens
         cacheCreationTokens += other.cacheCreationTokens
         cacheReadTokens += other.cacheReadTokens
-        costUsd += other.costUsd
     }
 }
 
-enum class CostWindow(val label: String) {
+enum class UsageWindow(val label: String) {
     TODAY("Today"),
-    LAST_7_DAYS("7 days"),
-    LAST_30_DAYS("30 days"),
-    ALL_TIME("All time"),
+    LAST_WEEK("Last week"),
+    LAST_MONTH("Last month"),
 }
 
 data class LocalUsage(
-    val windows: Map<CostWindow, TokenTotals> = emptyMap(),
-    /** Per-model all-time totals, highest cost first. */
-    val byModel: List<Pair<String, TokenTotals>> = emptyList(),
+    val windows: Map<UsageWindow, TokenTotals> = emptyMap(),
 ) {
-    fun window(w: CostWindow): TokenTotals = windows[w] ?: TokenTotals()
+    fun window(w: UsageWindow): TokenTotals = windows[w] ?: TokenTotals()
 }

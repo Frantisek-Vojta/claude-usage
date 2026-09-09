@@ -1,6 +1,5 @@
 package dev.fvojta.claudeusage.statusbar
 
-import dev.fvojta.claudeusage.model.TokenTotals
 import java.time.Duration
 import java.time.OffsetDateTime
 import kotlin.math.abs
@@ -17,15 +16,7 @@ internal object Format {
         }
     }
 
-    fun usd(v: Double): String = when {
-        v >= 100 -> "$%.0f".format(v)
-        v >= 1 -> "$%.2f".format(v)
-        else -> "$%.3f".format(v)
-    }
-
-    fun cost(t: TokenTotals): String = usd(t.costUsd)
-
-    /** "2d 3h", "3h 10m", "12m", "<1m", or "" when unknown. */
+    /** Time left until [isoTimestamp], as "H:MM" (or "Dd H:MM"); "" when unknown, "now" when past. */
     fun untilReset(isoTimestamp: String?): String {
         if (isoTimestamp.isNullOrBlank()) return ""
         val target = runCatching { OffsetDateTime.parse(isoTimestamp) }.getOrNull() ?: return ""
@@ -34,11 +25,7 @@ internal object Format {
         val days = d.toDays()
         val hours = d.toHours() % 24
         val minutes = d.toMinutes() % 60
-        return when {
-            days > 0 -> "${days}d ${hours}h"
-            hours > 0 -> "${hours}h ${minutes}m"
-            minutes > 0 -> "${minutes}m"
-            else -> "<1m"
-        }
+        val hm = "%d:%02d".format(hours, minutes)
+        return if (days > 0) "${days}d $hm" else hm
     }
 }

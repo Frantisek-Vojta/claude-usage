@@ -1,9 +1,9 @@
 package dev.fvojta.claudeusage.local
 
 import com.intellij.openapi.diagnostic.logger
-import dev.fvojta.claudeusage.model.CostWindow
 import dev.fvojta.claudeusage.model.LocalUsage
 import dev.fvojta.claudeusage.model.TokenTotals
+import dev.fvojta.claudeusage.model.UsageWindow
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
@@ -12,11 +12,16 @@ import java.io.File
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
+import java.time.temporal.ChronoUnit
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * Aggregates token usage and estimated cost from the Claude Code CLI transcript
- * logs: `~/.claude/projects/<slug>/<session>.jsonl`, one JSON object per line.
+ * Counts tokens from the Claude Code CLI transcript logs:
+ * `~/.claude/projects/<slug>/<session>.jsonl`, one JSON object per line.
+ *
+ * NOTE: this only sees traffic that went through the Claude Code CLI — not
+ * claude.ai in the browser or other clients — so it is a lower bound on what
+ * actually counts against your subscription quota.
  *
  * Per-file results are cached by (path, size, lastModified) so repeated scans
  * only re-parse sessions that changed.
@@ -27,12 +32,8 @@ object TranscriptScanner {
     private val zone: ZoneId = ZoneId.systemDefault()
 
     private data class CacheKey(val path: String, val size: Long, val mtime: Long)
-    private data class FileAgg(
-        val byDate: Map<LocalDate, TokenTotals>,
-        val byModel: Map<String, TokenTotals>,
-    )
 
-    private val cache = ConcurrentHashMap<String, Pair<CacheKey, FileAgg>>()
+    private val cache = ConcurrentHashMap<String, Pair<CacheKey, Map<LocalDate, TokenTotals>>>()
 
     fun projectsDir(): File = File(System.getProperty("user.home"), ".claude/projects")
 
@@ -42,45 +43,35 @@ object TranscriptScanner {
 
         val files = root.walkTopDown().filter { it.isFile && it.extension == "jsonl" }.toList()
         val liveKeys = HashSet<String>(files.size)
-
         val byDate = HashMap<LocalDate, TokenTotals>()
-        val byModel = HashMap<String, TokenTotals>()
 
         for (file in files) {
             liveKeys += file.path
             val key = CacheKey(file.path, file.length(), file.lastModified())
             val agg = cache[file.path]?.takeIf { it.first == key }?.second
                 ?: parseFile(file).also { cache[file.path] = key to it }
-
-            agg.byDate.forEach { (d, t) -> byDate.getOrPut(d) { TokenTotals() } += t }
-            agg.byModel.forEach { (m, t) -> byModel.getOrPut(m) { TokenTotals() } += t }
+            agg.forEach { (d, t) -> byDate.getOrPut(d) { TokenTotals() } += t }
         }
         cache.keys.retainAll(liveKeys)
 
-        return LocalUsage(
-            windows = buildWindows(byDate),
-            byModel = byModel.entries.sortedByDescending { it.value.costUsd }.map { it.key to it.value },
-        )
+        return LocalUsage(windows = buildWindows(byDate))
     }
 
-    private fun buildWindows(byDate: Map<LocalDate, TokenTotals>): Map<CostWindow, TokenTotals> {
+    private fun buildWindows(byDate: Map<LocalDate, TokenTotals>): Map<UsageWindow, TokenTotals> {
         val today = LocalDate.now(zone)
-        val result = CostWindow.entries.associateWith { TokenTotals() }
+        val result = UsageWindow.entries.associateWith { TokenTotals() }
         for ((date, totals) in byDate) {
-            val daysBack = java.time.temporal.ChronoUnit.DAYS.between(date, today)
-            if (date == today) result.getValue(CostWindow.TODAY) += totals
-            if (daysBack in 0..6) result.getValue(CostWindow.LAST_7_DAYS) += totals
-            if (daysBack in 0..29) result.getValue(CostWindow.LAST_30_DAYS) += totals
-            result.getValue(CostWindow.ALL_TIME) += totals
+            val daysBack = ChronoUnit.DAYS.between(date, today)
+            if (date == today) result.getValue(UsageWindow.TODAY) += totals
+            if (daysBack in 0..6) result.getValue(UsageWindow.LAST_WEEK) += totals
+            if (daysBack in 0..29) result.getValue(UsageWindow.LAST_MONTH) += totals
         }
         return result
     }
 
-    private fun parseFile(file: File): FileAgg {
+    private fun parseFile(file: File): Map<LocalDate, TokenTotals> {
         val byDate = HashMap<LocalDate, TokenTotals>()
-        val byModel = HashMap<String, TokenTotals>()
         val seen = HashSet<String>()
-
         try {
             file.bufferedReader().useLines { lines ->
                 for (line in lines) {
@@ -98,26 +89,25 @@ object TranscriptScanner {
                     val dedupKey = (message.str("id") ?: "") + "|" + (obj.str("requestId") ?: "")
                     if (dedupKey != "|" && !seen.add(dedupKey)) continue
 
-                    val input = usage.long("input_tokens")
-                    val output = usage.long("output_tokens")
-                    val cacheWrite = usage.long("cache_creation_input_tokens")
-                    val cacheRead = usage.long("cache_read_input_tokens")
-                    if (input == 0L && output == 0L && cacheWrite == 0L && cacheRead == 0L) continue
+                    val entry = TokenTotals(
+                        inputTokens = usage.long("input_tokens"),
+                        outputTokens = usage.long("output_tokens"),
+                        cacheCreationTokens = usage.long("cache_creation_input_tokens"),
+                        cacheReadTokens = usage.long("cache_read_input_tokens"),
+                    )
+                    if (entry.totalTokens == 0L) continue
 
                     val date = obj.str("timestamp")?.let {
                         runCatching { Instant.parse(it).atZone(zone).toLocalDate() }.getOrNull()
                     } ?: continue
 
-                    val cost = ModelPricing.cost(model, input, output, cacheWrite, cacheRead)
-                    val entry = TokenTotals(input, output, cacheWrite, cacheRead, cost)
                     byDate.getOrPut(date) { TokenTotals() } += entry
-                    byModel.getOrPut(model) { TokenTotals() } += entry
                 }
             }
         } catch (e: Exception) {
             LOG.warn("Failed to parse ${file.path}: ${e.message}")
         }
-        return FileAgg(byDate, byModel)
+        return byDate
     }
 
     private fun JsonObject.str(key: String): String? =

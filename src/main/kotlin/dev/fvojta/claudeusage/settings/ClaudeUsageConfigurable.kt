@@ -10,7 +10,6 @@ import com.intellij.ui.dsl.builder.bindText
 import com.intellij.ui.dsl.builder.columns
 import com.intellij.ui.dsl.builder.panel
 import dev.fvojta.claudeusage.UsageService
-import dev.fvojta.claudeusage.model.CostWindow
 import dev.fvojta.claudeusage.model.QuotaTier
 
 class ClaudeUsageConfigurable : BoundConfigurable("Claude Usage Monitor") {
@@ -22,14 +21,6 @@ class ClaudeUsageConfigurable : BoundConfigurable("Claude Usage Monitor") {
             row("Show quota:") {
                 comboBox(QuotaTier.entries.toList())
                     .bindItem({ state.quotaTier }, { state.quotaTier = it ?: QuotaTier.FIVE_HOUR })
-            }
-            row {
-                checkBox("Show estimated cost")
-                    .bindSelected({ state.showCost }, { state.showCost = it })
-            }
-            row("Cost window:") {
-                comboBox(CostWindow.entries.toList())
-                    .bindItem({ state.costWindow }, { state.costWindow = it ?: CostWindow.TODAY })
             }
         }
 

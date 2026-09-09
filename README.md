@@ -3,14 +3,15 @@
 A small, free, open-source JetBrains plugin that shows your **Claude** usage in the
 IDE status bar (bottom-right).
 
-Two things in one widget:
+The status bar shows `11% used | 1:55` — percent of the selected quota used and
+time (`H:MM`) until it resets.
 
 | | Source | Needs login? |
 |---|---|---|
 | **Subscription quota** — 5-hour / 7-day / 7-day-Sonnet limits, `%` used, colour indicator, time to reset | `GET https://api.anthropic.com/api/oauth/usage`, authenticated with the token the Claude Code CLI already stored | No — reuses the CLI's credentials |
-| **Token & cost breakdown** — input / output / cache tokens and estimated USD cost for today / 7d / 30d / all time, plus per-model totals | Parsed locally from `~/.claude/projects/**/*.jsonl` | No |
+| **Tokens used** — total tokens for today / last week / last month | Parsed locally from `~/.claude/projects/**/*.jsonl` | No |
 
-Click the widget for the full breakdown. Configure under
+Click the widget for the breakdown (quota + token counts). Configure under
 **Settings → Tools → Claude Usage Monitor**.
 
 > Screenshots: `docs/status-bar.png`, `docs/popup.png` _(add before publishing)_
@@ -30,8 +31,8 @@ UsageService (app service, 1 background thread, refresh every N min)
 ├── CredentialsReader ──► access token (Keychain or ~/.claude/.credentials.json)
 ├── SubscriptionUsageClient ──► GET /api/oauth/usage ──► 5h / 7d / 7d-Sonnet quota
 └── TranscriptScanner ──► walk ~/.claude/projects/**/*.jsonl
-        per assistant message: sum usage tokens, price with ModelPricing,
-        bucket by local date + model, cache per file by (size, mtime)
+        per assistant message: sum usage tokens, bucket by local date,
+        cache per file by (size, mtime)
         ▼
    Snapshot ──► ClaudeUsageWidget (status bar) + UsagePopup (details)
 ```
@@ -41,10 +42,10 @@ UsageService (app service, 1 background thread, refresh every N min)
 - **`/api/oauth/usage` is undocumented.** It is what `claude` → `/usage` calls. Anthropic
   can change or remove it; the request deliberately sends a `claude-code/*` User-Agent
   (`SubscriptionUsageClient.USER_AGENT`) because the endpoint has rejected unknown clients
-  before. If the quota part stops working, bump that constant. The local token/cost view
-  is unaffected.
-- Costs are **estimates** at API list prices (`ModelPricing`), shown so you can see what
-  the traffic would have cost per token. Subscription users are not billed this.
+  before. If the quota part stops working, bump that constant.
+- **Token counts are from the Claude Code CLI logs only** — usage from claude.ai in the
+  browser or other clients is not in those files, so the numbers are a lower bound and
+  will not match the quota percentage exactly.
 
 ## Build & run
 

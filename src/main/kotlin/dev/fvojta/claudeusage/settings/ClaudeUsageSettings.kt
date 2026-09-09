@@ -5,7 +5,6 @@ import com.intellij.openapi.components.BaseState
 import com.intellij.openapi.components.SimplePersistentStateComponent
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
-import dev.fvojta.claudeusage.model.CostWindow
 import dev.fvojta.claudeusage.model.QuotaTier
 import java.io.File
 
@@ -18,12 +17,6 @@ class ClaudeUsageSettings : SimplePersistentStateComponent<ClaudeUsageSettings.S
     class State : BaseState() {
         /** Which subscription quota the status bar text shows. */
         var quotaTier by enum<QuotaTier>(QuotaTier.FIVE_HOUR)
-
-        /** Also show an estimated cost next to the quota. */
-        var showCost by property(true)
-
-        /** Which local window the status-bar cost refers to. */
-        var costWindow by enum<CostWindow>(CostWindow.TODAY)
 
         /** Minutes between background refreshes (1..60). */
         var refreshIntervalMinutes by property(1)
