@@ -1,3 +1,5 @@
+import java.io.File
+
 plugins {
     id("java")
     id("org.jetbrains.kotlin.jvm") version "2.2.21"
@@ -39,10 +41,16 @@ intellijPlatform {
     }
 
     // `./gradlew signPlugin` / `publishPlugin` read these from the environment.
+    // Point *_FILE at your PEM files (easiest locally), or paste the PEM contents
+    // into CERTIFICATE_CHAIN / PRIVATE_KEY (handy for CI secrets).
     signing {
-        certificateChain = providers.environmentVariable("CERTIFICATE_CHAIN")
-        privateKey = providers.environmentVariable("PRIVATE_KEY")
         password = providers.environmentVariable("PRIVATE_KEY_PASSWORD")
+        providers.environmentVariable("CERTIFICATE_CHAIN_FILE").orNull
+            ?.let { certificateChainFile = layout.file(provider { File(it) }) }
+            ?: run { certificateChain = providers.environmentVariable("CERTIFICATE_CHAIN") }
+        providers.environmentVariable("PRIVATE_KEY_FILE").orNull
+            ?.let { privateKeyFile = layout.file(provider { File(it) }) }
+            ?: run { privateKey = providers.environmentVariable("PRIVATE_KEY") }
     }
     publishing {
         token = providers.environmentVariable("PUBLISH_TOKEN")
