@@ -1,0 +1,53 @@
+<idea-plugin>
+    <id>dev.fvojta.claude-usage-monitor</id>
+    <name>Claude Usage Monitor</name>
+    <vendor url="https://github.com/vojtafran">Frantisek Vojta</vendor>
+
+    <description><![CDATA[
+        <p>Shows your <b>Claude</b> usage in the IDE status bar, bottom-right:</p>
+        <ul>
+            <li><b>Subscription quota</b> &mdash; 5-hour, 7-day and 7-day-Sonnet limits with a
+                percentage, a color indicator and the time until the next reset. Read straight from
+                the credentials the Claude Code CLI already stores, so there is nothing to log in to.</li>
+            <li><b>Token &amp; cost breakdown</b> &mdash; input / output / cache tokens and an
+                estimated USD cost for today, the last 7 days, the last 30 days and all time,
+                computed locally from the Claude Code transcript logs in <code>~/.claude/projects</code>.</li>
+        </ul>
+        <p>Click the widget for the full breakdown. Configure it under
+            <i>Settings &rarr; Tools &rarr; Claude Usage Monitor</i>.</p>
+        <p><b>Requirements:</b> the Claude Code CLI installed and authenticated
+            (<code>~/.claude/.credentials.json</code>).</p>
+        <p>Free and open source (MIT). The subscription-quota endpoint used here is undocumented and
+            may change without notice; the token/cost view keeps working regardless.</p>
+    ]]></description>
+
+    <change-notes><![CDATA[
+        <b>0.1.0</b>
+        <ul>
+            <li>Initial release: status-bar widget with subscription quota + local token/cost breakdown.</li>
+        </ul>
+    ]]></change-notes>
+
+    <depends>com.intellij.modules.platform</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <statusBarWidgetFactory
+                id="ClaudeUsageMonitorWidget"
+                implementation="dev.fvojta.claudeusage.statusbar.ClaudeUsageWidgetFactory"
+                order="after positionWidget"/>
+
+        <applicationService
+                serviceImplementation="dev.fvojta.claudeusage.UsageService"/>
+
+        <applicationConfigurable
+                parentId="tools"
+                instance="dev.fvojta.claudeusage.settings.ClaudeUsageConfigurable"
+                id="dev.fvojta.claudeusage.settings.ClaudeUsageConfigurable"
+                displayName="Claude Usage Monitor"/>
+
+        <applicationService
+                serviceImplementation="dev.fvojta.claudeusage.settings.ClaudeUsageSettings"/>
+
+        <notificationGroup id="Claude Usage Monitor" displayType="BALLOON"/>
+    </extensions>
+</idea-plugin>
