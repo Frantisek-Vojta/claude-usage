@@ -1,30 +1,47 @@
 <idea-plugin>
     <id>dev.fvojta.claude-usage-monitor</id>
     <name>Claude Usage Monitor</name>
-    <vendor url="https://github.com/vojtafran">Frantisek Vojta</vendor>
+    <vendor url="https://github.com/Frantisek-Vojta">Frantisek Vojta</vendor>
 
     <description><![CDATA[
-        <p>Shows your <b>Claude</b> usage in the IDE status bar, bottom-right:</p>
+        <p>Keeps an eye on your <b>Claude</b> usage from the IDE status bar (bottom-right).
+            The widget shows <code>14% used | resets in 1:14</code> &mdash; how much of your
+            subscription quota is gone and when it resets.</p>
+
+        <p><b>Two things, one widget:</b></p>
         <ul>
-            <li><b>Subscription quota</b> &mdash; 5-hour, 7-day and 7-day-Sonnet limits with a
-                percentage, a color indicator and the time until the next reset. Read straight from
-                the credentials the Claude Code CLI already stores, so there is nothing to log in to.</li>
-            <li><b>Token &amp; cost breakdown</b> &mdash; input / output / cache tokens and an
-                estimated USD cost for today, the last 7 days, the last 30 days and all time,
-                computed locally from the Claude Code transcript logs in <code>~/.claude/projects</code>.</li>
+            <li><b>Subscription quota</b> &mdash; the 5-hour, 7-day and 7-day-Sonnet limits, each with
+                a percentage, a colour indicator (green &rarr; yellow &rarr; red) and the time to the
+                next reset. Same numbers as <code>claude</code> &rarr; <code>/usage</code>.</li>
+            <li><b>Tokens used</b> &mdash; total tokens sent and received (and prompt-cache traffic,
+                shown separately) for today, the last week and the last month, counted locally from
+                the Claude Code transcript logs.</li>
         </ul>
-        <p>Click the widget for the full breakdown. Configure it under
-            <i>Settings &rarr; Tools &rarr; Claude Usage Monitor</i>.</p>
-        <p><b>Requirements:</b> the Claude Code CLI installed and authenticated
-            (<code>~/.claude/.credentials.json</code>).</p>
-        <p>Free and open source (MIT). The subscription-quota endpoint used here is undocumented and
-            may change without notice; the token/cost view keeps working regardless.</p>
+
+        <p>Click the widget for the breakdown. Configure it under
+            <i>Settings &rarr; Tools &rarr; Claude Usage Monitor</i> (which quota to show, refresh
+            interval, colour thresholds, threshold notifications).</p>
+
+        <p><b>No login.</b> The plugin reuses the OAuth token the Claude Code CLI already stored
+            (<code>~/.claude/.credentials.json</code>, or the macOS Keychain). It only ever sends that
+            token to <code>api.anthropic.com</code> over HTTPS to read your usage &mdash; nowhere else.
+            It never writes your credentials, and there is no telemetry.</p>
+
+        <p><b>Requirements:</b> the <a href="https://code.claude.com">Claude Code CLI</a> installed and
+            signed in.</p>
+
+        <p>Free and open source (<a href="https://github.com/Frantisek-Vojta/claude-usage">MIT, on
+            GitHub</a>). Not affiliated with Anthropic. The subscription-quota endpoint it reads is
+            undocumented and may change without notice; the token view keeps working regardless.</p>
     ]]></description>
 
     <change-notes><![CDATA[
-        <b>0.1.0</b>
+        <b>0.1.0</b> &mdash; Initial release.
         <ul>
-            <li>Initial release: status-bar widget with subscription quota + local token/cost breakdown.</li>
+            <li>Status-bar widget: <code>% used | resets in H:MM</code> for the selected quota, with a colour indicator.</li>
+            <li>Click-through popup: 5-hour / 7-day / 7-day-Sonnet quota, plus tokens used today / last week / last month.</li>
+            <li>Settings: quota tier, refresh interval, colour thresholds, threshold notifications, credentials path.</li>
+            <li>macOS Keychain support with credentials-file fallback.</li>
         </ul>
     ]]></change-notes>
 

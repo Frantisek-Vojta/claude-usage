@@ -81,7 +81,9 @@ object CredentialsReader {
         val token = runCatching {
             json.decodeFromString<CredentialsFile>(raw).claudeAiOauth?.accessToken
         }.getOrElse {
-            LOG.warn("Failed to parse credentials JSON: ${it.message}")
+            // Deliberately not logging the exception message: it can echo the raw
+            // credentials JSON (which contains the token) into idea.log.
+            LOG.warn("Could not parse the Claude credentials file")
             return Result.Err(Reason.NO_TOKEN)
         }
         return if (token.isNullOrBlank()) Result.Err(Reason.NO_TOKEN) else Result.Ok(token)

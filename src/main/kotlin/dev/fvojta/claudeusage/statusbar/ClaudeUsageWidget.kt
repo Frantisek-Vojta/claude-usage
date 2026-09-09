@@ -53,7 +53,7 @@ class ClaudeUsageWidget : CustomStatusBarWidget {
         } else {
             val pct = "${quota.utilization.toInt()}% used"
             val reset = Format.untilReset(quota.resetsAt)
-            if (reset.isEmpty()) pct else "$pct | resets in $reset"
+            if (reset.isEmpty()) pct else "$pct | resets in $reset/h"
         }
 
         label.foreground = when {
