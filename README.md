@@ -3,10 +3,10 @@
 A small, free, open-source plugin that shows your **Claude** subscription usage in the
 IDE status bar (bottom-right).
 
-[![Build](https://github.com/Frantisek-Vojta/claude-usage/actions/workflows/build.yml/badge.svg)](https://github.com/Frantisek-Vojta/claude-usage/actions/workflows/build.yml)
+[![Kotlin](https://img.shields.io/badge/Kotlin-2.2-7F52FF?logo=kotlin&logoColor=white)](https://kotlinlang.org)
+[![IntelliJ Platform](https://img.shields.io/badge/IntelliJ%20Platform-2025.1%2B-000?logo=intellijidea&logoColor=white)](https://plugins.jetbrains.com/docs/intellij/)
+[![Marketplace](https://img.shields.io/badge/JetBrains%20Marketplace-Claude%20Usage%20Monitor-FE315D?logo=jetbrains&logoColor=white)](https://plugins.jetbrains.com/plugin/34185)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-
-[View on the JetBrains Marketplace →](https://plugins.jetbrains.com/plugin/34185)
 
 The widget shows a Claude icon + `14% used | resets in 1:14` — how much of the selected
 quota is gone and the time (`H:MM`) until it resets. Click it for the full breakdown.
