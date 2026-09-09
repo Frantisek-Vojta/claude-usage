@@ -1,4 +1,4 @@
-# Claude Usage Monitor
+# Claude Usage for Jetbrains IDE
 
 A small, free, open-source JetBrains plugin that shows your **Claude** usage in the
 IDE status bar (bottom-right).
